@@ -7,6 +7,8 @@ import re  # 정규 표현식 사용
 import math
 from math import trunc
 
+#각 페이지 뭐 있을지 만들기
+
 class Application(tk.Tk):
     def __init__(self):
         super().__init__()
