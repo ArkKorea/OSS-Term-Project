@@ -5,15 +5,14 @@ import bcrypt  # 비밀번호 해싱
 import re  # 정규 표현식 사용
 
 #각 페이지 뭐 있을지 만들기
-
+#모든 페이지의 부모 클래스
 class Application(tk.Tk):
     def __init__(self):
         super().__init__()
-        # 프로젝트 이름 정하기
         self.title("Health Care Project")
         self.geometry("600x400")
 
-        self.id = str
+        self.id = ""
 
         # 데이터베이스 연결
         self.db = pymysql.connect(
@@ -35,6 +34,8 @@ class Application(tk.Tk):
 
     def show_frame(self, frame_class):
         page_name = frame_class.__name__
+        if page_name == "StartScreen" and self.current_frame.__class__.__name__ == "MainScreen":
+            self.id = ""
         frame = self.frames.get(page_name)
         if frame is None:
             frame = frame_class(parent=self.container, controller=self)
@@ -55,10 +56,8 @@ class Application(tk.Tk):
             sql = "INSERT INTO user (id, pw, first_name, last_name) VALUES (%s, %s, %s, %s)"
             self.cursor.execute(sql, (id, hashed_pw, first_name, last_name))
             self.db.commit()
-            print("register success")
             return True
         except Exception as e:
-            print(f"Error: {e}")
             return False
 
     # 로그인 확인
@@ -124,10 +123,8 @@ class LoginScreen(tk.Frame):
         id = self.id.get()
         pw = self.pw.get()
         if self.controller.validate_login(id, pw):
-            print("Login successful")
             self.controller.id = id
             self.controller.show_frame(MainScreen)
-            # 로그인 성공 후 할 작업 추가
         else:
             self.controller.show_popup("Login Failed", "아이디 혹은 비밀번호를 확인하세요")
 
@@ -137,7 +134,7 @@ class SignUpScreen(tk.Frame):
         super().__init__(parent)
         self.controller = controller
 
-        label = ttk.Label(self, text="Sign Up")
+        label = ttk.Label(self, text="회원가입", font=("Arial", 15))
         label.grid(row=0, column=1, pady=10, columnspan=2)
 
         self.id = tk.StringVar()
@@ -177,9 +174,9 @@ class SignUpScreen(tk.Frame):
         pw = self.pw.get()
         first_name = self.first_name.get()
         last_name = self.last_name.get()
+
         if self.controller.validate_password(pw):
             if self.controller.register_user(id, pw, first_name, last_name):
-                print("Sign up successful")
                 self.controller.show_popup("Sign Up Successed", "회원가입을 성공했습니다.")
                 self.controller.show_frame(LoginScreen)
             else:
@@ -209,15 +206,12 @@ class StartScreen(tk.Frame):
         go_to_main_button = ttk.Button(self, text="Go to Main Screen", command=lambda: controller.show_frame(MainScreen))
         go_to_main_button.grid(row=3, column=1, pady=5)
 
-
+#환경설정 창 제거
 class MainScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        self.controller = controller
-                        
-        menu_frame = tk.Frame(self, bg="lightgrey")
-        menu_frame.grid(row=2, column=0, columnspan=5, sticky="s")   
-
+        self.controller = controller   
+        
         main_label = tk.Label(self, text="운동 목록", font=("Arial", 15))
         main_label.grid(row=0, column=0, pady=5, sticky="w")
 
@@ -226,21 +220,20 @@ class MainScreen(tk.Frame):
         self.attribute_list.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
         self.attribute_list.bind("<<ListboxSelect>>", self.get_attribute_infomation)
 
+        menu_frame = tk.Frame(self, bg="lightgrey")
+        menu_frame.grid(row=2, column=0, columnspan=5, sticky="sew")
+
         my_page_button = ttk.Button(menu_frame, text="마이페이지", command=lambda: controller.show_frame(MyPageScreen))
-        my_page_button.grid(row=0, column=0, padx=5, pady=5)
-        my_page_button.config(style="TButton")
+        my_page_button.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
         bookmark_button = ttk.Button(menu_frame, text="즐겨찾기", command=lambda: controller.show_frame(BookmarkScreen))
         bookmark_button.grid(row=0, column=1, padx=5, pady=5)
 
-        option_button = ttk.Button(menu_frame, text="옵션", command=lambda: controller.show_frame(OptionScreen))
-        option_button.grid(row=0, column=2, padx=5, pady=5)
-
         logout_button = ttk.Button(menu_frame, text="로그아웃", command=lambda: controller.show_frame(StartScreen))
-        logout_button.grid(row=0, column=3, padx=5 ,pady=5)
+        logout_button.grid(row=0, column=2, padx=5 ,pady=5)
 
         quit_button = ttk.Button(menu_frame, text="종료", command=lambda: controller.quit())
-        quit_button.grid(row=0, column=4, padx=5, pady=5)
+        quit_button.grid(row=0, column=3, columnspan=2, padx=5, pady=5, sticky="e")
 
     # 리스트박스 내용 선언 
     def set_attribute_list(self):
@@ -274,7 +267,7 @@ class MainScreen(tk.Frame):
         popup_menu = tk.Frame(popup)
         popup_menu.pack(side="bottom", fill="x", pady=10)
         
-        start_button = ttk.Button(popup_menu, text="시작")
+        start_button = ttk.Button(popup_menu, text="시작", command=lambda: self.do_exercise(attribute_info[1], attribute_info[2]))
         start_button.pack(side="left", padx=5, pady=5)
 
         save_button = ttk.Button(popup_menu, text="저장", command=lambda: self.save_attribute(attribute_info[0]))
@@ -287,7 +280,6 @@ class MainScreen(tk.Frame):
         close_button.pack(side="left", padx=5, pady=5)
 
     # 즐겨찾기 추가
-    # sql형태는 사용자 id -> self.controller.id , 운동 e_id 넣기
     def save_attribute(self, e_id):
         try:
             sql = "INSERT INTO Bookmark VALUES (%s, %s)"
@@ -309,32 +301,42 @@ class MainScreen(tk.Frame):
         self.controller.db.commit()
         
     #운동하는 실제 함수 작성 상현이꺼 임포트
-    def do_exercise(self):
-        return
-
-class OptionScreen(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-
-        label = tk.Label(self, text="환경설정 페이지")
-        label.grid(row=0, column=0, columnspan=2, pady=10)
-
-        back_button = ttk.Button(self, text="Back to Main", command=lambda: controller.show_frame(MainScreen))
-        back_button.grid(row=1, column=0, pady=5)
+    def do_exercise(self, name, repeat):
+        is_complete = True # True 자리에 상현이 운동 함수 추가
+        if is_complete:
+            sql = "SELECT total FROM user WHERE id = %s"
+            self.controller.cursor.execute(sql, (self.controller.id))
+            total = self.controller.cursor.fetchone()[0] + 1
+            sql = "UPDATE user SET total = %s WHERE id = %s"
+            self.controller.cursor.execute(sql, (total, self.controller.id))
+            self.controller.db.commit()
+            self.controller.show_popup("Successed", "운동을 성공적으로 마무리 했습니다.")
 
 class MyPageScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        sql = "SELECT id, first_name, last_name, total FROM USER WHERE id = %s"
+        self.controller.cursor.execute(sql, (self.controller.id))
+        user_information = self.controller.cursor.fetchone()
 
-        label = tk.Label(self, text="My Page")
-        label.grid(row=0, column=0, columnspan=2, pady=10)
+        label = tk.Label(self, text="마이페이지", font=("Arial", 15))
+        label.grid(row=0, column=0, pady=5)
 
-        back_button = ttk.Button(self, text="Back to Main", command=lambda: controller.show_frame(MainScreen))
-        back_button.grid(row=1, column=0, pady=5)
+        user_name = tk.Label(self, text=f"이름 : {user_information[2]} {user_information[1]}")
+        user_name.grid(row=1, column=0, pady=5, sticky="w")
+
+        user_id = tk.Label(self, text=f"아이디 : {user_information[0]}")
+        user_id.grid(row=2, column=0, pady=5, sticky="w")
+
+        user_total = tk.Label(self, text=f"총 운동횟수 : {user_information[3]}")
+        user_total.grid(row=3, column=0, pady=5, sticky="w")
+
+        back_button = ttk.Button(self, text="돌아가기", command=lambda: controller.show_frame(MainScreen))
+        back_button.grid(row=4, column=0, pady=5)
 
 #즐겨찾기에 넣은 애들을 리스트 박스로 쭉 나열하기
+#즐겨찾기 목록 클릭 시 똑같이 팝업 나오게 수정하기
 class BookmarkScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -348,11 +350,10 @@ class BookmarkScreen(tk.Frame):
 
         self.bookmark_list = tk.Listbox(self, width=60, selectmode="extended")
         row = self.controller.cursor.fetchone()
-        idx = 0
         while row:
             self.bookmark_list.insert(0, row)
             row = self.controller.cursor.fetchone()
-            idx += 1
+
         self.bookmark_list.grid(row=1, column=0, columnspan=5, padx=10, pady=10, sticky="nsw")
 
         back_button = ttk.Button(self, text="Back to Main", command=lambda: controller.show_frame(MainScreen))
