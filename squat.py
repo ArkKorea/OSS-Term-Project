@@ -9,7 +9,7 @@ def squat(number):
     mp_hands = mp.solutions.hands       #정확도             #반응성
     pose = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
     hand = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5, min_tracking_confidence=0.5)
-    mp_drawing = mp.solutions.drawing_utils
+    mp_drawing = mp.solutions.drawing_utils             #랜드마크를 동영상에 표시해주는 코드
 
     # 스쿼트 개수와 상태 변수
     squat_count = 0
@@ -18,10 +18,10 @@ def squat(number):
     hand_detected=False
 
     # 비디오 스트림 열기
-    cap = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(0)
 
-    while cap.isOpened():
-        ret, frame = cap.read()
+    while camera.isOpened():
+        ret, frame = camera.read()
         if not ret:
             break
 
@@ -30,8 +30,8 @@ def squat(number):
         image.flags.writeable = False
 
         # MediaPipe로 포즈와 손 분석
-        pose_results = pose.process(image)
-        hand_results = hand.process(image)
+        pose_results = pose.process(image)      #mediapipe에서 사람의 포즈를 분석하기 위해서 사용
+        hand_results = hand.process(image)      #mediapipe에서 사람의 손을 분석하기 위해서 사용
 
         # RGB 이미지를 다시 BGR로 변환
         image.flags.writeable = True
@@ -41,11 +41,11 @@ def squat(number):
         if not hand_detected and hand_results.multi_hand_landmarks:
             hand_landmarks=hand_results.multi_hand_landmarks[0]
 
-            finger_1=False
-            finger_2=False
-            finger_3=False
-            finger_4=False
-            finger_5=False
+            finger_1=False      #엄지손가락
+            finger_2=False      #검지손가락
+            finger_3=False      #중지손가락
+            finger_4=False      #약지손가락
+            finger_5=False      #새끼손가락
 
             if(hand_landmarks.landmark[4].y<hand_landmarks.landmark[2].y):
                 finger_1=True
@@ -66,7 +66,7 @@ def squat(number):
 
         # 스쿼트 감지
         if is_squat_detecting and pose_results.pose_landmarks:
-            landmarks = pose_results.pose_landmarks.landmark
+            landmarks = pose_results.pose_landmarks.landmark        #관절의 좌표를 보여줌
             try:
                 # 왼쪽 다리 좌표 (엉덩이, 무릎, 발목)
                 left_hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x * frame.shape[1],
@@ -121,14 +121,15 @@ def squat(number):
         if cv2.waitKey(1) & 0xFF == ord('q'):  # 'q'를 눌러 종료
             return False
 
-    cap.release()
+    camera.release()
     cv2.destroyAllWindows()
-    return True
+    return squat_completed
 
 
 def calculate_angle(point1, point2, point3):
     """
     주어진 세 점의 좌표로 각도를 계산하는 함수.
+    벡터의 크기를 사용해 코싸인 함수로 각도를 구함.
     """
     a = np.array(point1)  # Hip
     b = np.array(point2)  # Knee
@@ -140,8 +141,3 @@ def calculate_angle(point1, point2, point3):
     cosine_angle = np.dot(ab, bc) / (np.linalg.norm(ab) * np.linalg.norm(bc))
     angle = np.arccos(cosine_angle)
     return np.degrees(angle)
-
-# 실행
-a=squat(5)
-print(a)
-
