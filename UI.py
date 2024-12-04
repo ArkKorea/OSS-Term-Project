@@ -3,6 +3,7 @@ from tkinter import ttk
 import pymysql  # 관계형 데이터베이스 활용
 import bcrypt  # 비밀번호 해싱
 import re  # 정규 표현식 사용
+import exercise as ex # 만든 운동 함수 사용
 
 #각 페이지 뭐 있을지 만들기
 #모든 페이지의 부모 클래스
@@ -302,7 +303,7 @@ class MainScreen(tk.Frame):
         
     #운동하는 실제 함수 작성 상현이꺼 임포트
     def do_exercise(self, name, repeat):
-        is_complete = True # True 자리에 상현이 운동 함수 추가
+        is_complete = ex.exercise(name, repeat)
         if is_complete:
             sql = "SELECT total FROM user WHERE id = %s"
             self.controller.cursor.execute(sql, (self.controller.id))
@@ -311,6 +312,8 @@ class MainScreen(tk.Frame):
             self.controller.cursor.execute(sql, (total, self.controller.id))
             self.controller.db.commit()
             self.controller.show_popup("Successed", "운동을 성공적으로 마무리 했습니다.")
+        else:
+            self.controller.show_popup("Failed", "운동을 실패했습니다. 다시 도전하세요!")
 
 class MyPageScreen(tk.Frame):
     def __init__(self, parent, controller):
