@@ -37,30 +37,10 @@ def squat(number):
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
         # 손 모양 확인 (보자기 모양 감지)
-        if not hand_detected and hand_results.multi_hand_landmarks:
-            hand_landmarks=hand_results.multi_hand_landmarks[0]
-
-            finger_1=False      #엄지손가락
-            finger_2=False      #검지손가락
-            finger_3=False      #중지손가락
-            finger_4=False      #약지손가락
-            finger_5=False      #새끼손가락
-
-            if(hand_landmarks.landmark[4].y<hand_landmarks.landmark[2].y):
-                finger_1=True
-            if(hand_landmarks.landmark[8].y<hand_landmarks.landmark[6].y):
-                finger_2=True
-            if(hand_landmarks.landmark[12].y<hand_landmarks.landmark[10].y):
-                finger_3=True
-            if(hand_landmarks.landmark[16].y<hand_landmarks.landmark[14].y):
-                finger_4=True
-            if(hand_landmarks.landmark[20].y<hand_landmarks.landmark[18].y):
-                finger_5=True
-
-            if(finger_1 and finger_2 and finger_3 and finger_4 and finger_5):
-                is_squat_detecting = True
-                hand_detected=True
-                cv2.putText(image, "Start Squat Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        if hand_detected==False:
+            hand_detected=hand_detecting(hand_results,image)
+        if hand_detected:
+            is_squat_detecting =True
 
 
         # 스쿼트 감지
@@ -140,3 +120,28 @@ def calculate_angle(point1, point2, point3):
     cosine_angle = np.dot(ab, bc) / (np.linalg.norm(ab) * np.linalg.norm(bc))
     angle = np.arccos(cosine_angle)
     return np.degrees(angle)
+
+def hand_detecting(hand_results,image):
+    if  hand_results.multi_hand_landmarks:      #손의 랜드마크 리스트(관절 21개를 의미)
+            hand_landmarks=hand_results.multi_hand_landmarks[0] #인식한 손 가져오기
+
+            finger_1=False      #엄지손가락
+            finger_2=False      #검지손가락
+            finger_3=False      #중지손가락
+            finger_4=False      #약지손가락
+            finger_5=False      #새끼손가락
+
+            if(hand_landmarks.landmark[4].y<hand_landmarks.landmark[2].y):
+                finger_1=True
+            if(hand_landmarks.landmark[8].y<hand_landmarks.landmark[6].y):
+                finger_2=True
+            if(hand_landmarks.landmark[12].y<hand_landmarks.landmark[10].y):
+                finger_3=True
+            if(hand_landmarks.landmark[16].y<hand_landmarks.landmark[14].y):
+                finger_4=True
+            if(hand_landmarks.landmark[20].y<hand_landmarks.landmark[18].y):
+                finger_5=True
+
+            if(finger_1 and finger_2 and finger_3 and finger_4 and finger_5):
+                cv2.putText(image, "Start Squat Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                return True
