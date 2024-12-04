@@ -9,14 +9,15 @@ def exercise(name, number):
         return lunge(number)
     elif name == "PUSH_UP":
         return push_up(number)
+    
 def lunge(number):
     mp_pose = mp.solutions.pose
-    mp_hands = mp.solutions.hands       #정확도             #반응성
-    pose = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
+    mp_hands = mp.solutions.hands       
+    pose = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)      #포즈의 정확도와 포즈의 반응성
     hand = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5, min_tracking_confidence=0.5)
     mp_drawing = mp.solutions.drawing_utils             #랜드마크를 동영상에 표시해주는 코드
 
-    # 런지 개수와 상태 변수
+    # 런지 개수의 개수와 어떤 상태인지 나타내는 상태 변수
     lunge_count = 0
     is_lunging = False
     is_lunge_detecting = False  # 손 모양 감지 상태
@@ -34,7 +35,7 @@ def lunge(number):
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         image.flags.writeable = False
 
-        # MediaPipe로 포즈와 손 분석
+        # MediaPipe로 포즈와 손을 분석
         pose_results = pose.process(image)      #mediapipe에서 사람의 포즈를 분석하기 위해서 사용
         hand_results = hand.process(image)      #mediapipe에서 사람의 손을 분석하기 위해서 사용
 
@@ -42,14 +43,14 @@ def lunge(number):
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-        # 손 모양 확인 (보자기 모양 감지)
+        # 손이 보자기이면 is_lunge_detecting을 True로 변환
         if hand_detected==False:
             hand_detected=hand_detecting(hand_results,image)
         if hand_detected:
             is_lunge_detecting =True
 
 
-        # 런지 감지
+        # 런지를 하는 것을 감지
         if is_lunge_detecting and pose_results.pose_landmarks:
             landmarks = pose_results.pose_landmarks.landmark        #관절의 좌표를 보여줌
             try:
@@ -85,7 +86,7 @@ def lunge(number):
                         is_lunging = False
                         lunge_count += 1
 
-                # 성공 메시지
+                # 런지를 목표 횟수까지 하면 True로 변환
                 if lunge_count == number:
                     lunge_completed = True
                     break
@@ -94,7 +95,7 @@ def lunge(number):
                 pass
         if hand_detected ==True:
             cv2.putText(image, "Measuring!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        # 런지 개수 표시 (항상 표시)
+        # 런지의 개수 표시 (항상 표시)
         cv2.putText(image, f"Count: {lunge_count} / {number}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # 랜드마크 시각화
@@ -359,6 +360,3 @@ def hand_detecting(hand_results,image):
                 cv2.putText(image, "Start Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 return True
     return False
-
-print(A=exercise("LUNGE",30))
-
