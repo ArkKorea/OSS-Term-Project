@@ -7,7 +7,7 @@ def squat(number):
     mp_pose = mp.solutions.pose
     mp_hands = mp.solutions.hands       #정확도             #반응성
     pose = mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
-    hand = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5, min_tracking_confidence=0.5)
+    hand = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.8, min_tracking_confidence=0.8)
     mp_drawing = mp.solutions.drawing_utils             #랜드마크를 동영상에 표시해주는 코드
 
     # 스쿼트 개수와 상태 변수
@@ -143,5 +143,8 @@ def hand_detecting(hand_results,image):
                 finger_5=True
 
             if(finger_1 and finger_2 and finger_3 and finger_4 and finger_5):
-                cv2.putText(image, "Start Squat Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.putText(image, "Start Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 return True
+    return False     
+
+A=squat(12)
