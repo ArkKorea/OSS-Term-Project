@@ -74,7 +74,10 @@ def lunge(number):
                 right_angle = calculate_angle(right_hip, right_knee, right_ankle)
 
                 # 런지 판정: 두 무릎 모두 앉은 상태 -> 일어난 상태
-                if left_angle < 90 and right_angle < 90:  # 앉은 상태
+                if left_angle < 110 and 80 < right_angle < 100:  # 앉은 상태
+                    if not is_lunging:
+                        is_lunging = True
+                elif right_angle <110 and 80 < left_angle < 100:
                     if not is_lunging:
                         is_lunging = True
                 elif left_angle > 160 and right_angle > 160:  # 일어난 상태
@@ -355,7 +358,7 @@ def hand_detecting(hand_results,image):
             if(finger_1 and finger_2 and finger_3 and finger_4 and finger_5):
                 cv2.putText(image, "Start Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 return True
+    return False
 
-
-print(A=exercise("SQUAT",30))
+print(A=exercise("LUNGE",30))
 
