@@ -239,8 +239,8 @@ def push_up(number):
         image.flags.writeable = False
 
         # MediaPipe로 포즈와 손 분석
-        pose_results = pose.process(image)      #mediapipe에서 사람의 포즈를 분석하기 위해서 사용
-        hand_results = hand.process(image)      #mediapipe에서 사람의 손을 분석하기 위해서 사용
+        pose_results = pose.process(image)
+        hand_results = hand.process(image)
 
         # RGB 이미지를 다시 BGR로 변환
         image.flags.writeable = True
@@ -296,7 +296,7 @@ def push_up(number):
 
         if hand_detected ==True:
             cv2.putText(image, "Measuring!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        # 업푸시업 개수 표시 (항상 표시)
+        # 푸시업 개수 표시 (항상 표시)
         cv2.putText(image, f"Count: {push_up_count} / {number}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # 랜드마크 시각화

@@ -1,11 +1,10 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk # UI 라이브러리
 import pymysql  # 관계형 데이터베이스 활용
 import bcrypt  # 비밀번호 해싱
 import re  # 정규 표현식 사용
 import exercise as ex # 만든 운동 함수 사용
 
-#각 페이지 뭐 있을지 만들기
 #모든 페이지의 부모 클래스
 class Application(tk.Tk):
     def __init__(self):
@@ -33,6 +32,7 @@ class Application(tk.Tk):
 
         self.show_frame(StartScreen)
 
+    # 화면전환 함수
     def show_frame(self, frame_class):
         page_name = frame_class.__name__
         if page_name == "StartScreen" and self.current_frame.__class__.__name__ == "MainScreen":
@@ -79,6 +79,7 @@ class Application(tk.Tk):
             return False
         return True
     
+    # 다방면에서 알림용 팝업을 띄울 때 사용하는 함수
     def show_popup(self, title, message):
         popup = tk.Toplevel(self)
         popup.title(title)
@@ -86,9 +87,9 @@ class Application(tk.Tk):
         label = tk.Label(popup, text=message)
         label.pack(side="top", fill="x", pady=10)
         ok_button = tk.Button(popup, text="OK", command=popup.destroy)
-        ok_button.pack(side="right", pady=5)
+        ok_button.pack(side="right", pady=5, padx=5)
 
-# 로그인 화면
+# 로그인 화면 정의
 class LoginScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -129,7 +130,7 @@ class LoginScreen(tk.Frame):
         else:
             self.controller.show_popup("Login Failed", "아이디 혹은 비밀번호를 확인하세요")
 
-# 회원가입 화면
+# 회원가입 화면 정의
 class SignUpScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -185,7 +186,7 @@ class SignUpScreen(tk.Frame):
         else:
             self.controller.show_popup("Invalid Password", "비밀번호는 10자 이상 20자 이하, 대문자를 포함해야 합니다.")
 
-# 프로그램 시작 시 초기 화면
+# 프로그램 시작 초기 화면 정의
 class StartScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -203,7 +204,7 @@ class StartScreen(tk.Frame):
                                     command=lambda: controller.show_frame(SignUpScreen))
         sign_up_button.grid(row=2, column=1, pady=5)
 
-#환경설정 창 제거
+#메인화면 정의
 class MainScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -239,7 +240,7 @@ class MainScreen(tk.Frame):
         for idx, value in enumerate(_list):
             self.attribute_list.insert(idx, value)
 
-    # 0 : e_id, 1 : e_name, 2 : e_repeat
+    # 리스트박스의 항목 선택시 정보를 DB에서 가져와 출력 함수 연계
     def get_attribute_infomation(self, event):
         selected_index = self.attribute_list.curselection()
         if selected_index:
@@ -297,7 +298,7 @@ class MainScreen(tk.Frame):
             self.controller.show_popup("Successed", "즐겨찾기에서 제거되었습니다.")
         self.controller.db.commit()
         
-    #운동하는 실제 함수 작성 상현이꺼 임포트
+    # exercise.py에 정의된 운동함수 사용
     def do_exercise(self, name, repeat):
         is_complete = ex.exercise(name, repeat)
         if is_complete:
@@ -334,7 +335,6 @@ class MyPageScreen(tk.Frame):
         back_button = ttk.Button(self, text="돌아가기", command=lambda: controller.show_frame(MainScreen))
         back_button.grid(row=4, column=0, pady=5)
 
-#즐겨찾기에 넣은 애들을 리스트 박스로 쭉 나열하기
 #즐겨찾기 목록 클릭 시 똑같이 팝업 나오게 수정하기
 class BookmarkScreen(tk.Frame):
     def __init__(self, parent, controller):
@@ -358,7 +358,6 @@ class BookmarkScreen(tk.Frame):
         back_button = ttk.Button(self, text="Back to Main", command=lambda: controller.show_frame(MainScreen))
         back_button.grid(row=2, column=0, pady=5)
 
-# main.py 만들어서 옮기기
 if __name__ == "__main__":
     app = Application()
     app.mainloop()
