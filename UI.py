@@ -71,9 +71,9 @@ class Application(tk.Tk):
             return bcrypt.checkpw(pw.encode('utf-8'), stored_pw.encode('utf-8'))
         return False
 
-    # 회원가입 시 패스워드 기준 확인 10자 이상, 대문자 포함
+    # 회원가입 시 패스워드 기준 확인 10자 이상 20자 미만, 대문자 포함
     def validate_password(self, pw):
-        if len(pw) < 10 and len(pw) > 20:
+        if len(pw) <= 10 and len(pw) > 20:
             return False
         elif not re.search(r'[A-Z]', pw):
             return False
@@ -185,7 +185,6 @@ class SignUpScreen(tk.Frame):
         else:
             self.controller.show_popup("Invalid Password", "비밀번호는 10자 이상 20자 이하, 대문자를 포함해야 합니다.")
 
-
 # 프로그램 시작 시 초기 화면
 class StartScreen(tk.Frame):
     def __init__(self, parent, controller):
@@ -203,9 +202,6 @@ class StartScreen(tk.Frame):
         sign_up_button = ttk.Button(self, text="회원가입",
                                     command=lambda: controller.show_frame(SignUpScreen))
         sign_up_button.grid(row=2, column=1, pady=5)
-
-        go_to_main_button = ttk.Button(self, text="Go to Main Screen", command=lambda: controller.show_frame(MainScreen))
-        go_to_main_button.grid(row=3, column=1, pady=5)
 
 #환경설정 창 제거
 class MainScreen(tk.Frame):
