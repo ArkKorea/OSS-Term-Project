@@ -9,7 +9,7 @@ def exercise(name, number):
         return lunge(number)
     elif name == "PUSH_UP":
         return push_up(number)
-
+      
 def lunge(number):
     mp_pose = mp.solutions.pose
     mp_hands = mp.solutions.hands       
@@ -93,7 +93,6 @@ def lunge(number):
 
             except IndexError:
                 pass
-
         if hand_detected ==True:
             cv2.putText(image, "Measuring!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         # 런지의 개수 표시 (항상 표시)
@@ -115,7 +114,7 @@ def lunge(number):
     camera.release()
     cv2.destroyAllWindows()
     return lunge_completed
-
+    
 def squat(number):
     mp_pose = mp.solutions.pose
     mp_hands = mp.solutions.hands
@@ -148,6 +147,7 @@ def squat(number):
         # 손 모양 확인 (보자기 모양 감지)
         if hand_detected==False:
             hand_detected=hand_detecting(hand_results,image)
+            print(f"hand_detected after: {hand_detected}")
         if hand_detected:
             is_squat_detecting =True
 
@@ -253,7 +253,7 @@ def push_up(number):
             is_push_up_detecting =True
 
 
-        # 스쿼트 감지
+        # 푸시업 감지
         if is_push_up_detecting and pose_results.pose_landmarks:
             landmarks = pose_results.pose_landmarks.landmark        #관절의 좌표를 보여줌
             try:
@@ -273,7 +273,7 @@ def push_up(number):
                 right_wrist = [landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x * frame.shape[1],
                                landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].y * frame.shape[0]]
 
-                # 각도 계산, 푸시업 용으로 바꾸기
+                # 각도 계산
                 left_angle = calculate_angle(left_shoulder, left_elbow, left_wrist)
                 right_angle = calculate_angle(right_shoulder, right_elbow, right_wrist)
 
@@ -286,7 +286,7 @@ def push_up(number):
                         is_push_up = False
                         push_up_count += 1
 
-                # 성공 메시지
+                # 지정 개수 채우면 성공
                 if push_up_count == number:
                     push_up_completed = True
                     break
@@ -296,7 +296,7 @@ def push_up(number):
 
         if hand_detected ==True:
             cv2.putText(image, "Measuring!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        # 스쿼트 개수 표시 (항상 표시)
+        # 업푸시업 개수 표시 (항상 표시)
         cv2.putText(image, f"Count: {push_up_count} / {number}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # 랜드마크 시각화
@@ -337,7 +337,7 @@ def calculate_angle(point1, point2, point3):
 def hand_detecting(hand_results,image):
     if  hand_results.multi_hand_landmarks:      #손의 랜드마크 리스트(관절 21개를 의미)
             hand_landmarks=hand_results.multi_hand_landmarks[0] #인식한 손 가져오기
-
+            
             finger_1=False      #엄지손가락
             finger_2=False      #검지손가락
             finger_3=False      #중지손가락
@@ -356,5 +356,6 @@ def hand_detecting(hand_results,image):
                 finger_5=True
 
             if(finger_1 and finger_2 and finger_3 and finger_4 and finger_5):
-                cv2.putText(image, "Start push_up Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.putText(image, "Start Detection!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 return True
+    return False
