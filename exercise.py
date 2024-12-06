@@ -147,7 +147,6 @@ def squat(number):
         # 손 모양 확인 (보자기 모양 감지)
         if hand_detected==False:
             hand_detected=hand_detecting(hand_results,image)
-            print(f"hand_detected after: {hand_detected}")
         if hand_detected:
             is_squat_detecting =True
 

@@ -37,17 +37,30 @@ class Application(tk.Tk):
         page_name = frame_class.__name__
         if page_name == "StartScreen" and self.current_frame.__class__.__name__ == "MainScreen":
             self.id = ""
+
         frame = self.frames.get(page_name)
+
         if frame is None:
+            # 새로운 프레임 생성
             frame = frame_class(parent=self.container, controller=self)
             self.frames[page_name] = frame
             frame.place(relx=0.5, rely=0.5, anchor="center")
-        frame.tkraise()
-
-        if self.current_frame is not None and self.current_frame != frame:
+    
+        # MainScreen을 숨기는 경우
+        if self.current_frame is not None and self.current_frame.__class__.__name__ == "MainScreen":
+            self.current_frame.place_forget()
+    
+        # 이전 프레임 삭제 (MainScreen 제외)
+        elif self.current_frame is not None and self.current_frame != frame:
             self.current_frame.destroy()
             del self.frames[self.current_frame.__class__.__name__]
-        
+    
+        # MainScreen이면 숨겼던 프레임 다시 표시
+        if page_name == "MainScreen" and frame:
+            frame.place(relx=0.5, rely=0.5, anchor="center", width=600, height=400)
+    
+        # 프레임 표시
+        frame.tkraise()
         self.current_frame = frame
 
     # 회원가입 내용 DB 저장
@@ -83,11 +96,41 @@ class Application(tk.Tk):
     def show_popup(self, title, message):
         popup = tk.Toplevel(self)
         popup.title(title)
-        popup.geometry("300x80")
+        popup.geometry("300x80+300+200")
         label = tk.Label(popup, text=message)
         label.pack(side="top", fill="x", pady=10)
         ok_button = tk.Button(popup, text="OK", command=popup.destroy)
         ok_button.pack(side="right", pady=5, padx=5)
+
+        # 선택한 항목 정보 팝업 
+    def show_exercise_popup(self, attribute_info, start_callback=None, save_callback=None, delete_callback=None):
+        popup = tk.Toplevel(self)
+        popup.title(attribute_info[1])
+        popup.geometry("400x200")
+
+        exercise_name = ttk.Label(popup, text=attribute_info[1])
+        exercise_name.pack(side="top", fill="x", pady=10)
+        
+        repeat_count = ttk.Label(popup,text=f"반복횟수 : {attribute_info[2]}회")
+        repeat_count.pack(side="top", fill="x", pady=10)
+
+        popup_menu = tk.Frame(popup)
+        popup_menu.pack(side="bottom", fill="x", pady=10)
+        
+        if start_callback:
+            start_button = ttk.Button(popup_menu, text="시작", command=lambda: start_callback(attribute_info[1], attribute_info[2]))
+            start_button.pack(side="left", padx=5, pady=5)
+
+        if save_callback:
+            save_button = ttk.Button(popup_menu, text="저장", command=lambda: save_callback(attribute_info[0]))
+            save_button.pack(side="left", padx=5, pady=5)
+
+        if delete_callback:
+            delete_button = ttk.Button(popup_menu, text="삭제", command=lambda: delete_callback(attribute_info[0]))
+            delete_button.pack(side="left", padx=5, pady=5)
+
+        close_button = ttk.Button(popup_menu, text="닫기", command=popup.destroy)
+        close_button.pack(side="left", padx=5, pady=5)
 
 # 로그인 화면 정의
 class LoginScreen(tk.Frame):
@@ -207,31 +250,41 @@ class StartScreen(tk.Frame):
 #메인화면 정의
 class MainScreen(tk.Frame):
     def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller   
-        
-        main_label = tk.Label(self, text="운동 목록", font=("Arial", 15))
-        main_label.grid(row=0, column=0, pady=5, sticky="w")
+        super().__init__(parent, width=600, height=400)  # 프레임 크기 강제 설정
+        self.controller = controller
+        self.grid_propagate(False)  # 내부 위젯이 프레임 크기에 영향을 주지 않도록 설정
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
 
-        self.attribute_list = tk.Listbox(self, width=60, selectmode="browse")
+        # 상단 라벨
+        main_label = tk.Label(self, text="운동 목록", font=("Arial", 15))
+        main_label.grid(row=0, column=1, pady=10, sticky="ew")
+
+        # 리스트 박스
+        self.attribute_list = tk.Listbox(self, width=50, selectmode="browse")
         self.set_attribute_list()
-        self.attribute_list.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
+        self.attribute_list.grid(row=1, column=1, padx=10, pady=10, sticky="n")
         self.attribute_list.bind("<<ListboxSelect>>", self.get_attribute_infomation)
 
+        # 메뉴 프레임
         menu_frame = tk.Frame(self, bg="lightgrey")
-        menu_frame.grid(row=2, column=0, columnspan=5, sticky="sew")
+        menu_frame.grid(row=2, column=1, padx=10, pady=10)
 
         my_page_button = ttk.Button(menu_frame, text="마이페이지", command=lambda: controller.show_frame(MyPageScreen))
-        my_page_button.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        my_page_button.grid(row=0, column=0, padx=5, pady=5)
 
         bookmark_button = ttk.Button(menu_frame, text="즐겨찾기", command=lambda: controller.show_frame(BookmarkScreen))
         bookmark_button.grid(row=0, column=1, padx=5, pady=5)
 
         logout_button = ttk.Button(menu_frame, text="로그아웃", command=lambda: controller.show_frame(StartScreen))
-        logout_button.grid(row=0, column=2, padx=5 ,pady=5)
+        logout_button.grid(row=0, column=2, padx=5, pady=5)
 
         quit_button = ttk.Button(menu_frame, text="종료", command=lambda: controller.quit())
-        quit_button.grid(row=0, column=3, columnspan=2, padx=5, pady=5, sticky="e")
+        quit_button.grid(row=0, column=3, padx=5, pady=5)
 
     # 리스트박스 내용 선언 
     def set_attribute_list(self):
@@ -248,34 +301,8 @@ class MainScreen(tk.Frame):
             sql = "SELECT * FROM exercise WHERE e_id = %s"
             self.controller.cursor.execute(sql, (selected_index,))
             result = self.controller.cursor.fetchone()
-            self.show_attribute_popup(result)
-    
-    # 선택한 항목 정보 팝업 
-    def show_attribute_popup(self, attribute_info):
-        popup = tk.Toplevel(self)
-        popup.title(attribute_info[1])
-        popup.geometry("400x200")
-
-        exercise_name = ttk.Label(popup, text=attribute_info[1])
-        exercise_name.pack(side="top", fill="x", pady=10)
-        
-        repeat_count = ttk.Label(popup,text=f"반복횟수 : {attribute_info[2]}회")
-        repeat_count.pack(side="top", fill="x", pady=10)
-
-        popup_menu = tk.Frame(popup)
-        popup_menu.pack(side="bottom", fill="x", pady=10)
-        
-        start_button = ttk.Button(popup_menu, text="시작", command=lambda: self.do_exercise(attribute_info[1], attribute_info[2]))
-        start_button.pack(side="left", padx=5, pady=5)
-
-        save_button = ttk.Button(popup_menu, text="저장", command=lambda: self.save_attribute(attribute_info[0]))
-        save_button.pack(side="left", padx=5, pady=5)
-
-        delete_button = ttk.Button(popup_menu, text="삭제", command=lambda: self.delete_attribute(attribute_info[0]))
-        delete_button.pack(side="left", padx=5, pady=5)
-
-        close_button = ttk.Button(popup_menu, text="닫기", command=popup.destroy)
-        close_button.pack(side="left", padx=5, pady=5)
+            self.controller.show_exercise_popup(result, self.do_exercise,
+                                                self.save_attribute, self.delete_attribute)
 
     # 즐겨찾기 추가
     def save_attribute(self, e_id):
@@ -312,6 +339,7 @@ class MainScreen(tk.Frame):
         else:
             self.controller.show_popup("Failed", "운동을 실패했습니다. 다시 도전하세요!")
 
+# 개인정보 페이지 정의
 class MyPageScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -345,18 +373,28 @@ class BookmarkScreen(tk.Frame):
 
         sql = "SELECT exercise.e_name, exercise.e_repeat FROM bookmark, user, exercise WHERE bookmark.e_id = exercise.e_id AND bookmark.id = user.id AND user.id =  %s"
         self.controller.cursor.execute(sql, (self.controller.id))
-        self.controller.db.commit()
 
         self.bookmark_list = tk.Listbox(self, width=60, selectmode="extended")
         row = self.controller.cursor.fetchone()
         while row:
             self.bookmark_list.insert(0, row)
             row = self.controller.cursor.fetchone()
-
         self.bookmark_list.grid(row=1, column=0, columnspan=5, padx=10, pady=10, sticky="nsw")
+        self.bookmark_list.bind("<<ListboxSelect>>", self.show_bookmark_popup)
 
         back_button = ttk.Button(self, text="Back to Main", command=lambda: controller.show_frame(MainScreen))
         back_button.grid(row=2, column=0, pady=5)
+    
+    def show_bookmark_popup(self, event):
+        selected_index = self.bookmark_list.curselection()
+        if selected_index:
+            item = self.bookmark_list.get(selected_index[0])
+            sql = "SELECT * FROM exercise WHERE e_name = %s and e_repeat = %s"
+            self.controller.cursor.execute(sql, (item[0], item[1]))
+            information = self.controller.cursor.fetchone()
+            self.controller.show_exercise_popup(information, lambda name, repeat: self.controller.frames["MainScreen"].do_exercise(name,repeat),
+                                                lambda e_id: self.controller.frames["MainScreen"].save_attribute(e_id),
+                                                lambda e_id: self.controller.frames["MainScreen"].delete_attribute(e_id))
 
 if __name__ == "__main__":
     app = Application()
