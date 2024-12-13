@@ -207,10 +207,10 @@ class SignUpScreen(tk.Frame):
         pw_entry = ttk.Entry(self, textvariable=self.pw, show="*")
         pw_entry.grid(row=4, column=1, pady=5)
 
-        sign_up_button = ttk.Button(self, text="Sign Up", command=self.sign_up)
+        sign_up_button = ttk.Button(self, text="회원가입 신청", command=self.sign_up)
         sign_up_button.grid(row=5, column=1, pady=5)
 
-        back_button = ttk.Button(self, text="Back to Login",
+        back_button = ttk.Button(self, text="로그인 하기",
                                  command=lambda: controller.show_frame(LoginScreen))
         back_button.grid(row=6, column=1, pady=5)
 
